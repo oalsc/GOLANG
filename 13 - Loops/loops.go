@@ -53,4 +53,8 @@ func main() {
 	// for chave, valor := range usuario2 {
 	// 	fmt.Println(chave, valor)
 	// }
+
+	for {
+		fmt.Println("Infinito")
+	}
 }
