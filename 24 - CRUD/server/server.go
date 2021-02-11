@@ -133,3 +133,78 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+// UpdateUser will update the user record in database
+func UpdateUser(w http.ResponseWriter, r *http.Request) {
+	parameters := mux.Vars(r)
+
+	ID, err := strconv.ParseUint(parameters["id"], 10, 32)
+	if err != nil {
+		w.Write([]byte("Error to convert parameter to int"))
+		return
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.Write([]byte("Error to read body of request"))
+		return
+	}
+
+	var user user
+	if erro := json.Unmarshal(body, &user); erro != nil {
+		w.Write([]byte("Error to conver user to struct"))
+		return
+	}
+
+	db, err := db.Conection()
+	if err != nil {
+		w.Write([]byte("Error to connect to database"))
+		return
+	}
+	defer db.Close()
+
+	statement, err := db.Prepare("update usuarios set nome = ?, email = ? where id = ?")
+	if err != nil {
+		w.Write([]byte("Error to creat statement"))
+		return
+	}
+
+	if _, err := statement.Exec(user.Nome, user.Email, ID); err != nil {
+		w.Write([]byte("Error to update user in database"))
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// DeleteUser will update user record in database
+func DeleteUser(w http.ResponseWriter, r *http.Request) {
+	parameters := mux.Vars(r)
+
+	ID, err := strconv.ParseUint(parameters["id"], 10, 32)
+	if err != nil {
+		w.Write([]byte("Error to convert parameter to int"))
+		return
+	}
+
+	db, err := db.Conection()
+	if err != nil {
+		w.Write([]byte("Error to connect to database"))
+		return
+	}
+	defer db.Close()
+
+	statement, err := db.Prepare("delete from usuarios where id = ?")
+	if err != nil {
+		w.Write([]byte("Error to creat statement"))
+		return
+	}
+	defer statement.Close()
+
+	if _, err := statement.Exec(ID); err != nil {
+		w.Write([]byte("Error to Delete user in database"))
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
